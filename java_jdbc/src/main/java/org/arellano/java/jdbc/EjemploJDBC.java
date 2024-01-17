@@ -1,6 +1,10 @@
 package org.arellano.java.jdbc;
 
+import org.arellano.java.jdbc.modelo.Productos;
+import org.arellano.java.jdbc.repositorio.ProductoRepositorioImplement;
+import org.arellano.java.jdbc.repositorio.Repositorio;
 import org.arellano.java.jdbc.util.ConexionBaseDatos;
+import org.w3c.dom.ls.LSOutput;
 
 import java.sql.*;
 
@@ -11,21 +15,12 @@ import java.sql.*;
 
 public class EjemploJDBC {
     public static void main(String[] args) {
-        try (Connection connection = ConexionBaseDatos.getInstancia();
-             Statement statement = connection.createStatement();
-             ResultSet conjuntoDatosBD = statement.executeQuery("SELECT * FROM productos")) {
+        try (Connection connection = ConexionBaseDatos.getInstancia()) {
+            Repositorio<Productos> consulta = new ProductoRepositorioImplement();
+            consulta.listar().forEach(item -> System.out.println(item.getNombre()));
 
-            while(conjuntoDatosBD.next()){
-                System.out.print(conjuntoDatosBD.getInt("id"));
-                System.out.print(" | ");
-                System.out.print(conjuntoDatosBD.getString("nombre"));
-                System.out.print(" | ");
-                System.out.print(conjuntoDatosBD.getInt("precio"));
-                System.out.print(" | ");
-                System.out.println(conjuntoDatosBD.getDate("fecha_registro"));
-            }
-        } catch (SQLException throwables){
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }
