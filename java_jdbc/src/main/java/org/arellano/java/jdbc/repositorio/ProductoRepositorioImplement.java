@@ -3,10 +3,7 @@ package org.arellano.java.jdbc.repositorio;
 import org.arellano.java.jdbc.modelo.Productos;
 import org.arellano.java.jdbc.util.ConexionBaseDatos;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,12 +21,7 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
            ResultSet resultSet = statement.executeQuery("SELECT * FROM productos")) {
 
             while(resultSet.next()){
-                Productos producto = new Productos();
-                producto.setId(resultSet.getInt("id"));
-                producto.setNombre(resultSet.getString("nombre"));
-                producto.setPrecio(resultSet.getInt("precio"));
-                producto.setFecha_registro(resultSet.getDate("fecha_registro"));
-
+                Productos producto = llenarProductos(resultSet);
                 productosList.add(producto);
             }
 
@@ -40,8 +32,26 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     }
 
     @Override
-    public Productos porId(Productos productos) {
-        return null;
+    public Productos porId(Long id) {
+        Productos producto = null;
+
+        try (PreparedStatement preparedStatement = getConnection()
+                .prepareStatement("select * from productos where id = ?")){
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()){
+                producto = llenarProductos(resultSet);
+            }
+
+            resultSet.close();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return producto;
     }
 
     @Override
@@ -52,5 +62,15 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     @Override
     public void eliminar(Long id) {
 
+    }
+
+    private Productos llenarProductos(ResultSet resultSet) throws SQLException {
+        Productos producto = new Productos();
+        producto.setId(resultSet.getInt("id"));
+        producto.setNombre(resultSet.getString("nombre"));
+        producto.setPrecio(resultSet.getInt("precio"));
+        producto.setFecha_registro(resultSet.getDate("fecha_registro"));
+
+        return producto;
     }
 }
