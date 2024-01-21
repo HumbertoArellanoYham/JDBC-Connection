@@ -10,9 +10,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConexionBaseDatos {
-    private static String url = "jdbc:mysql://localhost:3306/java_curso";
-    private static String user = "root";
-    private static String password = "rootsasa";
+    private static final String url = "jdbc:mysql://localhost:3306/java_curso";
+    private static final String user = "root";
+    private static final String password = "rootsasa";
     private static Connection connection;
 
     public static Connection getInstancia() throws SQLException {
