@@ -56,12 +56,40 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     @Override
     public void guardar(Productos productos) {
+        String resultSql;
+
+        if(productos.getId() > 0){
+            resultSql = "update productos set nombre = ?, precio = ? where id = ?";
+        } else {
+            resultSql = "Insert into productos(nombre, precio, fecha_registro) values (?, ?, ?)";
+        }
+
+        try(PreparedStatement preparedStatement = getConnection().prepareStatement(resultSql)){
+            preparedStatement.setString(1, productos.getNombre());
+            preparedStatement.setLong(2, productos.getPrecio());
+
+            if(productos.getId() > 0){
+                preparedStatement.setLong(3, productos.getId());
+            } else {
+                preparedStatement.setDate(3, new Date(productos.getFecha_registro().getTime()));
+            }
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
     @Override
     public void eliminar(Long id) {
+        try(PreparedStatement preparedStatement = getConnection().prepareStatement("delete from productos where id = ?")){
+            preparedStatement.setLong(1, id);
 
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Productos llenarProductos(ResultSet resultSet) throws SQLException {

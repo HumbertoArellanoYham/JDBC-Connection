@@ -10,6 +10,7 @@ public class Productos {
 
     public Productos(){}
 
+
     public Productos(long id, String nombre, int precio, Date fecha_registro){
         this.id = id;
         this.nombre = nombre;
@@ -47,5 +48,10 @@ public class Productos {
 
     public void setFecha_registro(Date fecha_registro) {
         this.fecha_registro = fecha_registro;
+    }
+
+    @Override
+    public String toString(){
+        return id + " | " + this.nombre + " | " + this.precio + " | " + this.fecha_registro;
     }
 }
