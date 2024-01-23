@@ -1,5 +1,6 @@
 package org.arellano.java.jdbc;
 
+import org.arellano.java.jdbc.modelo.Categoria;
 import org.arellano.java.jdbc.modelo.Productos;
 import org.arellano.java.jdbc.repositorio.ProductoRepositorioImplement;
 import org.arellano.java.jdbc.repositorio.Repositorio;
@@ -20,18 +21,23 @@ public class EjemploJDBC {
 
             Repositorio<Productos> consulta = new ProductoRepositorioImplement();
 
-
             System.out.println("============== Listar los productos ============");
             consulta.listar().forEach(System.out::println);
 
-            System.out.println("============== Buscar por Id ============");
-            System.out.println(consulta.porId(1L));
+            //System.out.println("============== Buscar por Id ============");
+            //System.out.println(consulta.porId(1L));
 
             System.out.println("============== Guardar un productos ============");
             Productos productoNuevo = new Productos();
-            productoNuevo.setId(4);
-            productoNuevo.setNombre("Magic apple 2");
-            productoNuevo.setPrecio(2000);
+            productoNuevo.setNombre("Teclado Red Dragon");
+            productoNuevo.setPrecio(450);
+            productoNuevo.setFecha_registro(new Date());
+
+            // Asignando la categoria al producto si no lanzara una exception en tiempo de ejecucion.
+            Categoria categoria = new Categoria();
+            categoria.setId(3L);
+            productoNuevo.setCategoria(categoria);
+
             consulta.guardar(productoNuevo);
             System.out.println("Se guardo con exito!");
 
