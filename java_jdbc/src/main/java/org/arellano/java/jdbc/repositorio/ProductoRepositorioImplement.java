@@ -37,7 +37,7 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
         Productos producto = null;
 
         try (PreparedStatement preparedStatement = getConnection()
-                .prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where id = ?")){
+                .prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();

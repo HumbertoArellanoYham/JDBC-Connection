@@ -24,8 +24,8 @@ public class EjemploJDBC {
             System.out.println("============== Listar los productos ============");
             consulta.listar().forEach(System.out::println);
 
-            //System.out.println("============== Buscar por Id ============");
-            //System.out.println(consulta.porId(1L));
+            System.out.println("============== Buscar por Id ============");
+            System.out.println(consulta.porId(1L));
 
             System.out.println("============== Guardar un productos ============");
             Productos productoNuevo = new Productos();
