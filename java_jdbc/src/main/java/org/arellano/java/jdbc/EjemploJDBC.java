@@ -17,6 +17,7 @@ import java.util.Date;
 
 public class EjemploJDBC {
     public static void main(String[] args) {
+        long start = System.currentTimeMillis();
         try (Connection connection = ConexionBaseDatos.getInstancia()) {
 
             Repositorio<Productos> consulta = new ProductoRepositorioImplement();
@@ -54,5 +55,8 @@ public class EjemploJDBC {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        long endTime = System.currentTimeMillis() - start;
+        System.out.println("\n" + start);
     }
 }
