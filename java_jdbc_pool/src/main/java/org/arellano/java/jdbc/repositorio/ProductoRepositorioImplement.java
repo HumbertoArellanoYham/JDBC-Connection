@@ -19,14 +19,19 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
         List<Productos> productosList = new ArrayList<>();
 
         try(Connection connection = getConnection();
-            Statement statement = connection.createStatement();
 
-           ResultSet resultSet = statement.executeQuery("SELECT p.*, c.nombre as categoria FROM productos as p inner join categorias as c on (p.categoria_id = c.id)")) {
+            CallableStatement callableStatement = connection.prepareCall("{call listar_productos()}")) {
+           //ResultSet resultSet = statement.executeQuery("SELECT p.*, c.nombre as categoria FROM productos as p inner join categorias as c on (p.categoria_id = c.id)")) {
+
+            callableStatement.execute();
+            ResultSet resultSet = callableStatement.getResultSet();
 
             while(resultSet.next()){
                 Productos producto = llenarProductos(resultSet);
                 productosList.add(producto);
             }
+
+            resultSet.close();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -39,11 +44,12 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
         Productos producto = null;
 
         try (Connection connection = getConnection();
-                PreparedStatement preparedStatement = connection
-                .prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
-            preparedStatement.setLong(1, id);
+            CallableStatement callableStatement = connection.prepareCall("{call por_id(?) }")){
+                //PreparedStatement preparedStatement = connection
+                //.prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
+            callableStatement.setLong(1, id);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            ResultSet resultSet = callableStatement.executeQuery();
 
             if(resultSet.next()){
                 producto = llenarProductos(resultSet);
@@ -60,27 +66,30 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     @Override
     public void guardar(Productos productos) {
-        String resultSql;
+        String resultSql = "";
 
         if(productos.getId() > 0){
-            resultSql = "update productos set nombre = ?, precio = ?, categoria_id = ? where id = ?";
+            //resultSql = "update productos set nombre = ?, precio = ?, categoria_id = ? where id = ?";
+            resultSql = "{call actualizar_producto(?, ?, ?, ?)}";
         } else {
-            resultSql = "Insert into productos(nombre, precio, categoria_id, fecha_registro) values (?, ?, ?, ?)";
+            //resultSql = "Insert into productos(nombre, precio, categoria_id, fecha_registro) values (?, ?, ?, ?)";
+            resultSql = "{call guardar_producto(?, ?, ?, ?)}";
         }
 
         try(Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(resultSql)){
-            preparedStatement.setString(1, productos.getNombre());
-            preparedStatement.setLong(2, productos.getPrecio());
-            preparedStatement.setLong(3, productos.getCategoria().getId());
+            CallableStatement callableStatement = connection.prepareCall(resultSql)){
+            //PreparedStatement preparedStatement = connection.prepareStatement(resultSql)){
+            callableStatement.setString(1, productos.getNombre());
+            callableStatement.setLong(2, productos.getPrecio());
+            callableStatement.setLong(3, productos.getCategoria().getId());
 
             if(productos.getId() > 0){
-                preparedStatement.setLong(4, productos.getId());
+                callableStatement.setLong(4, productos.getId());
             } else {
-                preparedStatement.setDate(4, new Date(productos.getFecha_registro().getTime()));
+                callableStatement.setDate(4, new Date(productos.getFecha_registro().getTime()));
             }
 
-            preparedStatement.executeUpdate();
+            callableStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -90,10 +99,11 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     @Override
     public void eliminar(Long id) {
         try(Connection connection = getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement("delete from productos where id = ?")){
-            preparedStatement.setLong(1, id);
+            CallableStatement callableStatement = connection.prepareCall("{call eliminar_producto(?)}")){
+                //PreparedStatement preparedStatement = connection.prepareStatement("delete from productos where id = ?")){
+            callableStatement.setLong(1, id);
 
-            preparedStatement.executeUpdate();
+            callableStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
