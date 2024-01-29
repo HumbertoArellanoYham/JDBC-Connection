@@ -11,20 +11,26 @@ import java.util.List;
 public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     private Connection getConnection() throws SQLException {
-        return ConexionBaseDatos.getInstancia();
+        return ConexionBaseDatos.getConnection();
     }
 
     @Override
     public List<Productos> listar() {
         List<Productos> productosList = new ArrayList<>();
 
-        try(Statement statement = getConnection().createStatement();
-           ResultSet resultSet = statement.executeQuery("SELECT p.*, c.nombre as categoria FROM productos as p inner join categorias as c on (p.categoria_id = c.id)")) {
+        try(Connection connection = getConnection();
+
+            CallableStatement callableStatement = connection.prepareCall("{call listar_productos()}")) {
+
+            callableStatement.execute();
+            ResultSet resultSet = callableStatement.getResultSet();
 
             while(resultSet.next()){
                 Productos producto = llenarProductos(resultSet);
                 productosList.add(producto);
             }
+
+            resultSet.close();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -36,11 +42,11 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     public Productos porId(Long id) {
         Productos producto = null;
 
-        try (PreparedStatement preparedStatement = getConnection()
-                .prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
-            preparedStatement.setLong(1, id);
+        try (Connection connection = getConnection();
+            CallableStatement callableStatement = connection.prepareCall("{call por_id(?) }")){
+            callableStatement.setLong(1, id);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            ResultSet resultSet = callableStatement.executeQuery();
 
             if(resultSet.next()){
                 producto = llenarProductos(resultSet);
@@ -57,26 +63,27 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     @Override
     public void guardar(Productos productos) {
-        String resultSql;
+        String resultSql = "";
 
         if(productos.getId() > 0){
-            resultSql = "update productos set nombre = ?, precio = ?, categoria_id = ? where id = ?";
+            resultSql = "{call actualizar_producto(?, ?, ?, ?)}";
         } else {
-            resultSql = "Insert into productos(nombre, precio, categoria_id, fecha_registro) values (?, ?, ?, ?)";
+            resultSql = "{call guardar_producto(?, ?, ?, ?)}";
         }
 
-        try(PreparedStatement preparedStatement = getConnection().prepareStatement(resultSql)){
-            preparedStatement.setString(1, productos.getNombre());
-            preparedStatement.setLong(2, productos.getPrecio());
-            preparedStatement.setLong(3, productos.getCategoria().getId());
+        try(Connection connection = getConnection();
+            CallableStatement callableStatement = connection.prepareCall(resultSql)){
+            callableStatement.setString(1, productos.getNombre());
+            callableStatement.setLong(2, productos.getPrecio());
+            callableStatement.setLong(3, productos.getCategoria().getId());
 
             if(productos.getId() > 0){
-                preparedStatement.setLong(4, productos.getId());
+                callableStatement.setLong(4, productos.getId());
             } else {
-                preparedStatement.setDate(4, new Date(productos.getFecha_registro().getTime()));
+                callableStatement.setDate(4, new Date(productos.getFecha_registro().getTime()));
             }
 
-            preparedStatement.executeUpdate();
+            callableStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -85,10 +92,11 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     @Override
     public void eliminar(Long id) {
-        try(PreparedStatement preparedStatement = getConnection().prepareStatement("delete from productos where id = ?")){
-            preparedStatement.setLong(1, id);
+        try(Connection connection = getConnection();
+            CallableStatement callableStatement = connection.prepareCall("{call eliminar_producto(?)}")){
+            callableStatement.setLong(1, id);
 
-            preparedStatement.executeUpdate();
+            callableStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

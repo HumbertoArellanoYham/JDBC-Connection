@@ -18,7 +18,9 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     public List<Productos> listar() {
         List<Productos> productosList = new ArrayList<>();
 
-        try(Statement statement = getConnection().createStatement();
+        try(Connection connection = getConnection();
+            Statement statement = connection.createStatement();
+
            ResultSet resultSet = statement.executeQuery("SELECT p.*, c.nombre as categoria FROM productos as p inner join categorias as c on (p.categoria_id = c.id)")) {
 
             while(resultSet.next()){
@@ -36,7 +38,8 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     public Productos porId(Long id) {
         Productos producto = null;
 
-        try (PreparedStatement preparedStatement = getConnection()
+        try (Connection connection = getConnection();
+                PreparedStatement preparedStatement = connection
                 .prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
             preparedStatement.setLong(1, id);
 
@@ -65,7 +68,8 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
             resultSql = "Insert into productos(nombre, precio, categoria_id, fecha_registro) values (?, ?, ?, ?)";
         }
 
-        try(PreparedStatement preparedStatement = getConnection().prepareStatement(resultSql)){
+        try(Connection connection = getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(resultSql)){
             preparedStatement.setString(1, productos.getNombre());
             preparedStatement.setLong(2, productos.getPrecio());
             preparedStatement.setLong(3, productos.getCategoria().getId());
@@ -85,7 +89,8 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
     @Override
     public void eliminar(Long id) {
-        try(PreparedStatement preparedStatement = getConnection().prepareStatement("delete from productos where id = ?")){
+        try(Connection connection = getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement("delete from productos where id = ?")){
             preparedStatement.setLong(1, id);
 
             preparedStatement.executeUpdate();
