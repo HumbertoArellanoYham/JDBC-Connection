@@ -21,7 +21,6 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
         try(Connection connection = getConnection();
 
             CallableStatement callableStatement = connection.prepareCall("{call listar_productos()}")) {
-           //ResultSet resultSet = statement.executeQuery("SELECT p.*, c.nombre as categoria FROM productos as p inner join categorias as c on (p.categoria_id = c.id)")) {
 
             callableStatement.execute();
             ResultSet resultSet = callableStatement.getResultSet();
@@ -45,8 +44,6 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
 
         try (Connection connection = getConnection();
             CallableStatement callableStatement = connection.prepareCall("{call por_id(?) }")){
-                //PreparedStatement preparedStatement = connection
-                //.prepareStatement("select p.*, c.nombre as categoria from productos as p inner join categorias as c on (p.categoria_id = c.id) where p.id = ?")){
             callableStatement.setLong(1, id);
 
             ResultSet resultSet = callableStatement.executeQuery();
@@ -69,16 +66,13 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
         String resultSql = "";
 
         if(productos.getId() > 0){
-            //resultSql = "update productos set nombre = ?, precio = ?, categoria_id = ? where id = ?";
             resultSql = "{call actualizar_producto(?, ?, ?, ?)}";
         } else {
-            //resultSql = "Insert into productos(nombre, precio, categoria_id, fecha_registro) values (?, ?, ?, ?)";
             resultSql = "{call guardar_producto(?, ?, ?, ?)}";
         }
 
         try(Connection connection = getConnection();
             CallableStatement callableStatement = connection.prepareCall(resultSql)){
-            //PreparedStatement preparedStatement = connection.prepareStatement(resultSql)){
             callableStatement.setString(1, productos.getNombre());
             callableStatement.setLong(2, productos.getPrecio());
             callableStatement.setLong(3, productos.getCategoria().getId());
@@ -100,7 +94,6 @@ public class ProductoRepositorioImplement implements Repositorio<Productos> {
     public void eliminar(Long id) {
         try(Connection connection = getConnection();
             CallableStatement callableStatement = connection.prepareCall("{call eliminar_producto(?)}")){
-                //PreparedStatement preparedStatement = connection.prepareStatement("delete from productos where id = ?")){
             callableStatement.setLong(1, id);
 
             callableStatement.executeUpdate();
